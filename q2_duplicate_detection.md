@@ -92,8 +92,32 @@ keep only one copy per unique record. Additionally, investigate the root cause �
 duplicate payment_id and login_id values suggest a retry or double-write issue in the 
 source system, which should be fixed upstream rather than only cleaned downstream.
 
+## Bonus: De-duplication Query (ROW_NUMBER)
 
+Detecting duplicates is only half the job — here's how to actually remove them so downstream analysis (Q6 onwards) uses clean data.
 
+```sql
+-- Deduplicated customers (safe to use for downstream analysis)
+SELECT * EXCEPT(row_num) FROM (
+  SELECT *,
+    ROW_NUMBER() OVER (
+      PARTITION BY customer_id, full_name, email, phone, region, signup_date, plan_type
+      ORDER BY customer_id
+    ) AS row_num
+  FROM `airtel-churn-analysis.churn_analysis.customers`
+)
+WHERE row_num = 1;
 
+-- Deduplicated payments (safe to use for revenue calculations)
+SELECT * EXCEPT(row_num) FROM (
+  SELECT *,
+    ROW_NUMBER() OVER (
+      PARTITION BY payment_id, customer_id, subscription_id, payment_date, amount, payment_method
+      ORDER BY payment_id
+    ) AS row_num
+  FROM `airtel-churn-analysis.churn_analysis.payments`
+)
+WHERE row_num = 1;
+```
 
-
+**How it works:** `ROW_NUMBER()` assigns a sequential number (1, 2, 3...) to each row within a group of exact duplicates (defined by `PARTITION BY`). Keeping only `row_num = 1` for each group means we retain exactly one copy of every unique record and drop the rest — a safer alternative to `DISTINCT` because it works even when only some columns match.
