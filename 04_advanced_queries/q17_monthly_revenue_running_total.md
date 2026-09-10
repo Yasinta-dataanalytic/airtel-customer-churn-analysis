@@ -43,8 +43,9 @@ FROM monthly_agg
 ORDER BY revenue_month;
 ```
 
-##Result
+## results
 <img width="766" height="601" alt="Screenshot 2026-09-10 105238" src="https://github.com/user-attachments/assets/94e40e32-24d4-474f-aebb-a58835358394" />
+
 ## insight
 Cumulative revenue reached approximately TZS 63.86M by the end of the observed period. Month-to-month amounts fluctuate between roughly TZS 1.4M and 2.95M with no clear upward trend — consistent with the flat revenue pattern already identified in Q8 and Q19.
 
